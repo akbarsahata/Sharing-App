@@ -2,7 +2,9 @@ package com.example.sharingapp;
 
 import android.content.Context;
 import android.content.Intent;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -49,7 +51,7 @@ public class EditContactActivity extends AppCompatActivity {
             return;
         }
 
-        if (!email_str.contains("@")){
+        if (!email_str.contains("@")) {
             email.setError("Must be an email address!");
             return;
         }
@@ -66,18 +68,26 @@ public class EditContactActivity extends AppCompatActivity {
 
         Contact updated_contact = new Contact(username_str, email_str, id);
 
-        contact_list.deleteContact(contact);
-        contact_list.addContact(updated_contact);
-        contact_list.saveContacts(context);
+        EditContactCommand edit_contact_command = new EditContactCommand(contact_list, contact, updated_contact, context);
+        edit_contact_command.execute();
+
+        boolean success = edit_contact_command.isExecuted();
+        if (!success) {
+            return;
+        }
 
         // End EditContactActivity
         finish();
     }
 
     public void deleteContact(View view) {
+        DeleteContactCommand delete_contact_command = new DeleteContactCommand(contact_list, contact, context);
+        delete_contact_command.execute();
 
-        contact_list.deleteContact(contact);
-        contact_list.saveContacts(context);
+        boolean success = delete_contact_command.isExecuted();
+        if (!success) {
+            return;
+        }
 
         // End EditContactActivity
         finish();
