@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 /**
  * Editing a pre-existing contact consists of deleting the old contact and adding a new contact with the old
@@ -18,6 +19,9 @@ public class EditContactActivity extends AppCompatActivity {
 
     private ContactList contact_list = new ContactList();
     private Contact contact;
+
+    private ContactListController contact_list_controller = new ContactListController(contact_list);
+
     private EditText email;
     private EditText username;
     private Context context;
@@ -28,18 +32,23 @@ public class EditContactActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_contact);
 
         context = getApplicationContext();
-        contact_list.loadContacts(context);
+        contact_list_controller.loadContacts(context);
 
         Intent intent = getIntent();
         int pos = intent.getIntExtra("position", 0);
 
-        contact = contact_list.getContact(pos);
+        contact = contact_list_controller.getContact(pos);
 
         username = (EditText) findViewById(R.id.username);
         email = (EditText) findViewById(R.id.email);
 
         username.setText(contact.getUsername());
         email.setText(contact.getEmail());
+    }
+
+    private void showToast(String text) {
+        int duration = Toast.LENGTH_SHORT;
+        Toast.makeText(context, text, duration).show();
     }
 
     public void saveContact(View view) {
@@ -68,28 +77,16 @@ public class EditContactActivity extends AppCompatActivity {
 
         Contact updated_contact = new Contact(username_str, email_str, id);
 
-        EditContactCommand edit_contact_command = new EditContactCommand(contact_list, contact, updated_contact, context);
-        edit_contact_command.execute();
-
-        boolean success = edit_contact_command.isExecuted();
-        if (!success) {
-            return;
-        }
-
-        // End EditContactActivity
-        finish();
+        if (contact_list_controller.editContact(contact, updated_contact, context)) {
+            showToast("Contact updated");
+            finish();
+        } else showToast("Failed to update contact");
     }
 
     public void deleteContact(View view) {
-        DeleteContactCommand delete_contact_command = new DeleteContactCommand(contact_list, contact, context);
-        delete_contact_command.execute();
-
-        boolean success = delete_contact_command.isExecuted();
-        if (!success) {
-            return;
-        }
-
-        // End EditContactActivity
-        finish();
+        if (contact_list_controller.deleteContact(contact, context)) {
+            showToast("Contact deleted");
+            finish();
+        } else showToast("Failed to delete contact");
     }
 }

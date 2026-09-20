@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.provider.MediaStore;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -27,6 +29,9 @@ public class AddItemActivity extends AppCompatActivity {
     private int REQUEST_CODE = 1;
 
     private ItemList item_list = new ItemList();
+
+    private ItemListController item_list_controller = new ItemListController(item_list);
+
     private Context context;
 
     @Override
@@ -48,7 +53,7 @@ public class AddItemActivity extends AppCompatActivity {
         item_list.loadItems(context);
     }
 
-    public void saveItem (View view) {
+    public void saveItem(View view) {
 
         String title_str = title.getText().toString();
         String maker_str = maker.getText().toString();
@@ -88,14 +93,11 @@ public class AddItemActivity extends AppCompatActivity {
         }
 
         Item item = new Item(title_str, maker_str, description_str, image, null);
-        item.setDimensions(length_str, width_str, height_str);
+        ItemController item_controller = new ItemController(item);
+        item_controller.setDimensions(length_str, width_str, height_str);
 
-        // Add item
-        AddItemCommand add_item_command = new AddItemCommand(item_list, item, context);
-        add_item_command.execute();
-
-        boolean success = add_item_command.isExecuted();
-        if (!success){
+        boolean success = item_list_controller.addItem(item, context);
+        if (!success) {
             return;
         }
 
@@ -117,8 +119,9 @@ public class AddItemActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int request_code, int result_code, Intent intent){
-        if (request_code == REQUEST_CODE && result_code == RESULT_OK){
+    protected void onActivityResult(int request_code, int result_code, Intent intent) {
+        super.onActivityResult(request_code, result_code, intent);
+        if (request_code == REQUEST_CODE && result_code == RESULT_OK) {
             Bundle extras = intent.getExtras();
             image = (Bitmap) extras.get("data");
             photo.setImageBitmap(image);
