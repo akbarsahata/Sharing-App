@@ -15,16 +15,22 @@ import android.widget.Toast;
  * contact's id.
  * Note: You will not be able contacts which are "active" borrowers
  */
-public class EditContactActivity extends AppCompatActivity {
+public class EditContactActivity extends AppCompatActivity implements Observer {
 
     private ContactList contact_list = new ContactList();
     private Contact contact;
 
     private ContactListController contact_list_controller = new ContactListController(contact_list);
 
+    private ContactController contact_controller;
+
     private EditText email;
     private EditText username;
     private Context context;
+
+    private int pos;
+
+    private Boolean on_create_update = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +38,9 @@ public class EditContactActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_contact);
 
         context = getApplicationContext();
-        contact_list_controller.loadContacts(context);
 
         Intent intent = getIntent();
-        int pos = intent.getIntExtra("position", 0);
+        pos = intent.getIntExtra("position", 0);
 
         contact = contact_list_controller.getContact(pos);
 
@@ -44,6 +49,10 @@ public class EditContactActivity extends AppCompatActivity {
 
         username.setText(contact.getUsername());
         email.setText(contact.getEmail());
+
+        on_create_update = true;
+        contact_list_controller.addObserver(this);
+        contact_list_controller.loadContacts(context);
     }
 
     private void showToast(String text) {
@@ -88,5 +97,16 @@ public class EditContactActivity extends AppCompatActivity {
             showToast("Contact deleted");
             finish();
         } else showToast("Failed to delete contact");
+    }
+
+    @Override
+    public void update() {
+        if (on_create_update && contact_list_controller.getSize() > pos) {
+            contact = contact_list_controller.getContact(pos);
+            contact_controller = new ContactController(contact);
+            username.setText(contact_controller.getUsername());
+            email.setText(contact_controller.getEmail());
+            on_create_update = false;
+        }
     }
 }
