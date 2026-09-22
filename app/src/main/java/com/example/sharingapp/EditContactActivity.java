@@ -27,6 +27,8 @@ public class EditContactActivity extends AppCompatActivity implements Observer {
     private EditText email;
     private EditText username;
     private Context context;
+    private String username_str;
+    private String email_str;
 
     private int pos;
 
@@ -61,28 +63,10 @@ public class EditContactActivity extends AppCompatActivity implements Observer {
     }
 
     public void saveContact(View view) {
-
-        String email_str = email.getText().toString();
-
-        if (email_str.equals("")) {
-            email.setError("Empty field!");
+        if (!validateInput()) {
             return;
         }
-
-        if (!email_str.contains("@")) {
-            email.setError("Must be an email address!");
-            return;
-        }
-
-        String username_str = username.getText().toString();
         String id = contact.getId(); // Reuse the contact id
-
-        // Check that username is unique AND username is changed (Note: if username was not changed
-        // then this should be fine, because it was already unique.)
-        if (!contact_list.isUsernameAvailable(username_str) && !(contact.getUsername().equals(username_str))) {
-            username.setError("Username already taken!");
-            return;
-        }
 
         Contact updated_contact = new Contact(username_str, email_str, id);
 
@@ -90,6 +74,26 @@ public class EditContactActivity extends AppCompatActivity implements Observer {
             showToast("Contact updated");
             finish();
         } else showToast("Failed to update contact");
+    }
+
+    public boolean validateInput() {
+        email_str = email.getText().toString();
+        username_str = username.getText().toString();
+
+        if (email_str.equals("")) {
+            email.setError("Empty field!");
+            return false;
+        }
+        if (!email_str.contains("@")) {
+            email.setError("Must be an email address!");
+            return false;
+        }
+        // A username that remains unchanged was already unique.
+        if (!contact_list.isUsernameAvailable(username_str) && !(contact.getUsername().equals(username_str))) {
+            username.setError("Username already taken!");
+            return false;
+        }
+        return true;
     }
 
     public void deleteContact(View view) {
